@@ -1,0 +1,92 @@
+<!doctype html><html lang="en"><head><title>Kinride — Shared trip</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src https://byqckhhzvgorpbmztkac.supabase.co; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'">
+<style>
+:root{--bg:#fff;--fg:#1c1c1e;--muted:#6b6b70;--accent:#0a84ff;--card:rgba(127,127,127,.08)}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--fg:#f2f2f7;--muted:#a1a1a6}}
+body{background:var(--bg);color:var(--fg);font:17px/1.55 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;max-width:680px;margin:0 auto;padding:32px 16px}
+h1{font-size:30px;margin:0 0 4px}h2{font-size:20px;margin-top:28px}.sub{color:var(--muted);margin:0 0 24px}a{color:var(--accent)}
+.note{border-left:3px solid var(--accent);padding:8px 14px;background:rgba(10,132,255,.08);border-radius:4px}
+.card{background:var(--card);border-radius:12px;padding:14px 16px;margin:12px 0}
+.label{color:var(--muted);font-size:14px;margin:0}.big{font-size:22px;font-weight:600;margin:2px 0 0}
+.plate{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em;border:1px solid var(--muted);border-radius:6px;padding:1px 8px}
+.pill{display:inline-block;border-radius:999px;padding:2px 12px;font-size:15px;font-weight:600;background:var(--accent);color:#fff}
+[hidden]{display:none!important}
+</style>
+</head><body>
+<h1>Kinride</h1><p class="sub">Shared trip</p>
+<p id="loading">Loading trip…</p>
+<div id="expired" hidden><h2>This trip link has expired</h2><p>Shared trip links stop working soon after the trip ends, or when the trip is cancelled. Ask the person who shared it for a new link if they are still travelling.</p></div>
+<div id="trip" hidden>
+  <p><span class="pill" id="status"></span></p>
+  <div class="card"><p class="label">Route</p><p class="big" id="route"></p><p id="times"></p></div>
+  <div class="card"><p class="label">Driver</p><p class="big" id="driver"></p>
+    <p id="car"></p><p>Plate <span class="plate" id="plate"></span></p></div>
+  <div class="card"><p class="label">Car's location</p><p class="big" id="loc"></p><p id="locmeta"></p></div>
+  <p class="sub" id="updated"></p>
+</div>
+<p id="error" class="note" hidden>Couldn't reach Kinride. Retrying…</p>
+<div class="note"><strong>In an emergency, call 911.</strong> This page can't send help.</div>
+<p class="sub">This page updates every 30 seconds. <a href="./">About Kinride</a> · <a href="privacy.html">Privacy</a></p>
+<script>
+(function () {
+  "use strict";
+  var API = "https://byqckhhzvgorpbmztkac.supabase.co/rest/v1/rpc/share_trip_view";
+  var KEY = "sb_publishable_yJaQmeEhckBrucvsCSYHmg_zJ92yI_1"; // publishable (anon) key: safe in public pages; access is limited by the RPC
+  var token = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim();
+  var $ = function (id) { return document.getElementById(id); };
+  var timer = null;
+  var STATUS = { scheduled: "Not started yet", in_progress: "On the way", completed: "Arrived" };
+  function time(iso) {
+    var d = new Date(iso); if (isNaN(d)) return "";
+    return d.toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" });
+  }
+  function ago(iso) {
+    var s = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000));
+    if (s < 60) return "just now"; if (s < 3600) return Math.round(s / 60) + " min ago";
+    return Math.round(s / 3600) + " h ago";
+  }
+  function show(id) { ["loading", "expired", "trip"].forEach(function (x) { $(x).hidden = x !== id; }); }
+  function expired() { show("expired"); $("error").hidden = true; if (timer) { clearInterval(timer); timer = null; } }
+  function render(t) {
+    show("trip"); $("error").hidden = true;
+    $("status").textContent = STATUS[t.status] || "Trip";
+    $("route").textContent = (t.origin || "") + " → " + (t.destination || "");
+    $("times").textContent = "Leaves " + time(t.departure_start) + " · expected arrival around " + time(t.est_arrival);
+    $("driver").textContent = t.driver_first_name || "";
+    var v = t.vehicle || {};
+    $("car").textContent = [v.color, v.make, v.model].filter(Boolean).join(" ");
+    $("plate").textContent = v.plate || "—";
+    var l = t.location;
+    if (t.status === "in_progress" && l && isFinite(l.lat) && isFinite(l.lng)) {
+      var a = document.createElement("a");
+      a.href = "https://maps.apple.com/?ll=" + Number(l.lat).toFixed(5) + "," + Number(l.lng).toFixed(5) + "&q=Kinride%20car";
+      a.rel = "noopener"; a.textContent = "Open in Maps";
+      $("loc").textContent = ""; $("loc").appendChild(a);
+      $("locmeta").textContent = "Last updated " + ago(l.recorded_at) + ". Expected arrival around " + time(t.est_arrival) + ".";
+    } else if (t.status === "in_progress") {
+      $("loc").textContent = "Waiting for the car's location";
+      $("locmeta").textContent = "Expected arrival around " + time(t.est_arrival) + ".";
+    } else if (t.status === "completed") {
+      $("loc").textContent = "Trip finished"; $("locmeta").textContent = "";
+    } else {
+      $("loc").textContent = "Shown once the trip starts";
+      $("locmeta").textContent = "Leaves " + time(t.departure_start) + ".";
+    }
+    $("updated").textContent = "Checked " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) +
+      (t.expires_at ? " · link works until " + time(t.expires_at) : "");
+  }
+  function load() {
+    fetch(API, { method: "POST", cache: "no-store",
+      headers: { "apikey": KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_token: token }) })
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (t) { if (!t || typeof t !== "object") expired(); else render(t); })
+      .catch(function () { if (!$("trip").hidden) { $("error").hidden = false; } else { $("loading").hidden = true; $("error").hidden = false; } });
+  }
+  if (!/^[0-9a-f]{16,128}$/i.test(token)) { expired(); return; }
+  load(); timer = setInterval(load, 30000);
+})();
+</script>
+</body></html>
