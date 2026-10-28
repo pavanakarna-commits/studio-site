@@ -16,7 +16,14 @@ h1{font-size:30px;margin:0 0 4px}h2{font-size:20px;margin-top:28px}.sub{color:va
 <li>Kinride is in a closed, invite-only beta on TestFlight. You need an invite code from a current member and a verified university email address. The beta is open to students with an @tamu.edu address, for trips between College Station and Houston, Austin, Dallas and San Antonio.</li>
 <li>Everyone must be 18 or older.</li>
 <li>Drivers upload photos of their licence, registration and insurance card, and our team checks them by hand before they can post a trip. <strong>Kinride does not run criminal background checks or driving-record checks yet.</strong> The "Admin-verified driver" badge means our team reviewed those documents, nothing more.</li>
-<li>Payment is off-app in the beta: after the ride, the rider pays the driver the shown share directly.</li>
+<li>Riders pay in the app by card (through Stripe). The seat share is capped as above; a small card processing fee is added as its own line so the driver gets the full share, and Kinride takes no cut. The beta runs on Stripe's test mode, so no real money moves yet.</li>
+</ul>
+<h2>Payments and refunds</h2>
+<ul>
+<li>When you book, the total is held on your card. You're charged after the ride; if the driver cancels or doesn't accept your request, the hold is released and you pay nothing.</li>
+<li>If you cancel more than 24 hours before departure, you're not charged. Between 24 and 2 hours before, half the seat share comes back (the card fee doesn't). Under 2 hours before, or if you don't show up, there's no refund.</li>
+<li>Drivers set up payouts with Stripe from <em>Profile › Payouts</em> before posting a paid trip. The driver's share is sent 48 hours after each ride, unless a payment is disputed. Kinride never sees your card number or bank details.</li>
+<li>A problem with a payment? Email us (below) within 48 hours of the ride and we'll hold the payout while we look into it.</li>
 </ul>
 <h2>Staying safe</h2>
 <ul>
@@ -26,7 +33,7 @@ h1{font-size:30px;margin:0 0 4px}h2{font-size:20px;margin-top:28px}.sub{color:va
 <li>Report or block anyone from their profile, a chat or a trip. We aim to review every report within 24 hours, and the person you report isn't told who reported them. If a driver you rode with in the last 48 hours seems impaired, report it: their account is paused right away while we review it. Other impairment reports are reviewed by our team first.</li>
 </ul>
 <h2>Delete your account</h2>
-<p>In the app, open <em>Profile</em>, tap <em>Delete account</em>, review what will be removed, tap <em>Continue</em> and confirm. This deletes your profile and photo, driver documents and car details, addresses, messages, ratings and invite codes, cancels your upcoming trips and bookings (the other people are notified), and signs you out. Some records are kept afterwards (safety records, the used invite code and trip price calculations, with your user ID only); the <a href="privacy.html">privacy policy</a> explains exactly which and for how long. If you can't open the app, email us from your university address and we'll delete the account for you.</p>
+<p>In the app, open <em>Profile</em>, tap <em>Delete account</em>, review what will be removed, tap <em>Continue</em> and confirm. This deletes your profile and photo, driver documents and car details, addresses, messages, ratings and invite codes, cancels your upcoming trips and bookings (the other people are notified), and signs you out. Some records are kept afterwards (safety records, the used invite code and trip price calculations with your user ID only, and payment records for accounting); the <a href="privacy.html">privacy policy</a> explains exactly which and for how long. If you can't open the app, email us from your university address and we'll delete the account for you.</p>
 <h2>Contact</h2>
 <p>Questions, problems, safety concerns or a request about your data: <a href="mailto:pavanakarna@gmail.com?subject=Kinride">pavanakarna@gmail.com</a>. We read every message. Testers can also send feedback from TestFlight: take a screenshot in the app and tap Share Beta Feedback.</p>
 <p><a href="privacy.html">Privacy policy</a></p>
