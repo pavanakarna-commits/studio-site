@@ -1,0 +1,51 @@
+<!doctype html><html lang="en"><head><title>Kinride — Open the app</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'">
+<style>
+:root{--bg:#fff;--fg:#1c1c1e;--muted:#6b6b70;--accent:#0a84ff}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--fg:#f2f2f7;--muted:#a1a1a6}}
+body{background:var(--bg);color:var(--fg);font:17px/1.55 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;max-width:680px;margin:0 auto;padding:32px 16px}
+h1{font-size:30px;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 24px}a{color:var(--accent)}
+.button{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;border-radius:12px;padding:12px 22px}
+[hidden]{display:none!important}
+</style>
+</head><body>
+<!-- Kinride's notification emails link here (BACKLOG #53, QA K-90): mail apps don't make kinride:// links tappable
+     in plain text, but they do https. The page hands the screen on to the app. Only the screens below are opened;
+     anything else opens the app's home. No data is read or sent. -->
+<h1>Kinride</h1><p class="sub" id="what">Opening Kinride…</p>
+<p><a class="button" id="open" href="kinride://open">Open Kinride</a></p>
+<p class="sub" id="phone">If nothing happens, tap the button.</p>
+<p class="sub" id="desktop" hidden>Open this link on the iPhone where Kinride is installed.</p>
+<p class="sub">Don't have Kinride on this phone? <a href="https://testflight.apple.com/join/N4H5WNCh">Install it with TestFlight</a>.</p>
+<script>
+(function () {
+  "use strict";
+  // The screens Kinride's emails open (supabase/functions/_shared/mailer.ts deepLink; the app's NotificationRoute).
+  var screens = {
+    "driver-documents": "Driver documents",
+    "post-trip": "Post a trip",
+    "edit-profile": "Edit profile",
+    "admin": "Admin",
+    "admin/drivers": "Admin › Drivers",
+    "admin/reports": "Admin › Reports",
+    "admin/waitlist": "Admin › Waitlist",
+    "admin/other": "Admin"
+  };
+  var to = new URLSearchParams(location.search).get("to") || "";
+  if (!Object.prototype.hasOwnProperty.call(screens, to)) to = "";
+  var target = "kinride://" + (to || "open");
+  document.getElementById("open").href = target;
+  if (to) document.getElementById("what").textContent = "Opening " + screens[to] + " in Kinride…";
+  var iOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (iOS) {
+    location.replace(target);
+  } else {
+    document.getElementById("what").textContent = "This link opens Kinride" + (to ? " at " + screens[to] : "") + ".";
+    document.getElementById("phone").hidden = true;
+    document.getElementById("desktop").hidden = false;
+  }
+})();
+</script>
+</body></html>
